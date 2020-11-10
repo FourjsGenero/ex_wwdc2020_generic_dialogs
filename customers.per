@@ -1,0 +1,34 @@
+DATABASE stores
+ACTION DEFAULTS
+ ACTION update(DEFAULTVIEW=yes)
+END
+
+LAYOUT (TEXT = "Customers")
+TABLE(HEIGHT=15 LINES, DOUBLECLICK=update)
+{
+ Num   First Name    Last Name  Phone      Address1  Address2   City  State  Zip Code  Company
+[f000][f001        |f002       |f003     | f004     |f005     | f006 | a0   | f007    | f008  ]
+}
+END END
+
+TABLES
+--"cust" is an alias to the customer table
+cust=customer
+
+ATTRIBUTES
+
+f000 = cust.customer_num;
+f001 = cust.fname;
+f002 = cust.lname;
+f003 = cust.phone;
+f004 = cust.address1;
+f005 = cust.address2;
+f006 = cust.city;
+BUTTONEDIT a0 = cust.state, UPSHIFT, NOTEDITABLE, ACTION=zoom;
+f007 = cust.zipcode;
+EDIT f008 = cust.company;--, PICTURE = "###-###-#### XXXXX";
+--PHANTOM fimg_action F
+
+
+INSTRUCTIONS
+SCREEN RECORD scr(cust.*)
