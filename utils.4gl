@@ -701,9 +701,9 @@ FUNCTION bestWidth(t)
         WHEN "STRING"
             RETURN 20
         WHEN "DECIMAL"
-            RETURN IIF(len IS NULL, 16, LEN + 2)
+            RETURN IIF(len IS NULL, 16, len + 2)
         WHEN "MONEY"
-            RETURN IIF(len IS NULL, 16, LEN + 2)
+            RETURN IIF(len IS NULL, 16, len + 2)
         WHEN "CHAR"
             RETURN IIF(len IS NULL, 1, IIF(len > 20, 20, len))
         WHEN "VARCHAR"
@@ -872,12 +872,12 @@ FUNCTION readSchema(schFile STRING)
   VAR
     tabName, colName STRING,
     dt, len, pos INT
-  WHILE ch.read([tabname, colname, dt, len, pos])
+  WHILE ch.read([tabName, colName, dt, len, pos])
     VAR schVal T_schemaVal
-    CALL getSchemaVal(tabname, colname, dt, len) RETURNING schVal.*
-    LET m_schema[tabname][colname] = schVal
-    LET m_colsByName[tabname][colname] = pos
-    LET m_colsByPos[tabname][pos] = colName
+    CALL getSchemaVal(tabName, colName, dt, len) RETURNING schVal.*
+    LET m_schema[tabName][colName] = schVal
+    LET m_colsByName[tabName][colName] = pos
+    LET m_colsByPos[tabName][pos] = colName
   END WHILE
   MYASSERT(m_schema.getLength() > 0)
   CALL ch.close()

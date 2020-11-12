@@ -16,6 +16,8 @@ MAIN
         ERROR "zipcode must have 5 digits"
         NEXT FIELD CURRENT
       END IF
+    ON ACTION an_action
+      MESSAGE "an_action"
   END INPUT
   CALL utils_customer.updateCustomer(customer.*) RETURNING customer.*
   DISPLAY util.JSON.stringify(customer)

@@ -4,7 +4,7 @@
 	fglform -M $<
 
 %.42m: %.4gl 
-	fglcomp -r -M -Wall -Wno-stdsql $*
+	fglcomp -r -M -Wall -Wno-stdsql -Wno-case $*
 
 ALLMODULES = $(patsubst %.4gl, %.42m, $(wildcard *.4gl))
 MODULES=$(filter-out utils.42m,$(ALLMODULES))
@@ -44,6 +44,11 @@ customer_reflect: customer_reflect.42m
 classicINPUT.42m: utils_customer.42m
 
 classicINPUT: classicINPUT.42m
+	fglrun $@
+
+dynINPUT.42m: utils_customer.42m
+
+dynINPUT: dynINPUT.42m
 	fglrun $@
 
 appINPUT.42m: libINPUT.42m utils_customer.42m
