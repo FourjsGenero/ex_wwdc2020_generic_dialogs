@@ -39,6 +39,9 @@ END FUNCTION
 --3 Interfaces checked
 --If there was an IMPLEMENTS clause for the RECORD type definition
 --we wouldn't need to do it here
+--IMPLEMENTS would als enable code completion for the method names
+--and types... so this is just a workaround until IMPLEMENTS is there
+
 FUNCTION (self TM_Cust) CheckInterfaces() --never called
   DEFINE iBI I_BeforeInput
   DEFINE iBF I_BeforeField
@@ -60,6 +63,8 @@ FUNCTION multiCallBack(delegate reflect.Value)
   DEFINE iBF I_BeforeField
   DEFINE iAF I_AfterField
   DEFINE d ui.Dialog
+  --one delegate can implement multiple interfaces
+  --we check at run time which interface is possible
   IF delegate.canAssignToVariable(iBI) THEN
      CALL delegate.assignToVariable(iBI)
      CALL iBI.BeforeInput(d)

@@ -1,11 +1,33 @@
+-- demonstrates how one can encapsulate a single DISPLAY ARRAY dynamic dialog
+-- using reflection and multiple interfaces which can be optionally implemented
+-- in the application RECORDs
 &include "myassert.inc"
 IMPORT reflect
 IMPORT util
 IMPORT FGL utils
---define an Interface our generic dialog can call
---application RECORDs must define this interface
-PUBLIC TYPE I_DynamicDialog INTERFACE
-  init(d ui.Dialog),
+
+PUBLIC CONSTANT BEFORE_DISPLAY = "BEFORE DISPLAY"
+PUBLIC CONSTANT BEFORE_ROW = "BEFORE ROW"
+PUBLIC CONSTANT AFTER_FIELD = "AFTER FIELD"
+PUBLIC CONSTANT AFTER_INPUT = "AFTER INPUT"
+PUBLIC CONSTANT ON_ACTION = "ON ACTION"
+PUBLIC CONSTANT ON_ACTION_accept = "ON ACTION accept"
+PUBLIC CONSTANT ON_ACTION_cancel = "ON ACTION cancel"
+--define multiple Interfaces our generic dialog can call
+--application RECORDs can define one of those interfaces
+PUBLIC TYPE I_BeforeDisplay INTERFACE
+  BeforeDisplay(d ui.Dialog)
+END INTERFACE
+
+PUBLIC TYPE I_BeforeRow INTERFACE
+  BeforeRow(d ui.Dialog, row INT)
+END INTERFACE
+
+PUBLIC TYPE I_OnActionInRow INTERFACE
+  OnActionInRow(actionEvent STRING, row INT)
+END INTERFACE
+
+PUBLIC TYPE I_DialogEvent INTERFACE
   event(d ui.Dialog, event STRING, row INT)
 END INTERFACE
 
@@ -20,30 +42,58 @@ END RECORD
 --hence all RECORD member of TM_Dialog cannot be accessed from other modules
 --(data encapsulation)
 PUBLIC FUNCTION runDisplayArray(
-  delegate I_DynamicDialog, screenRecord STRING, arrVal reflect.Value)
+  delegate reflect.Value, screenRecord STRING, arrVal reflect.Value)
   DEFINE a_dialog TM_Dialog
   CALL a_dialog.displayArray(delegate, screenRecord, arrVal)
 END FUNCTION
 
 PRIVATE FUNCTION (self TM_Dialog)
   displayArray(
-  delegate I_DynamicDialog, screenRecord STRING, arrVal reflect.Value)
+  delegate reflect.Value, screenRecord STRING, arrVal reflect.Value)
   DEFINE event STRING
+
   LET self.screenRecord = screenRecord
   CALL self.computeFieldNames(arrVal.getType())
   LET self.d =
     ui.Dialog.createDisplayArrayTo(
       fields: self.fields, screenRecord: screenRecord)
-  CALL self.d.setArrayLength(name: screenRecord, length: arrVal.getLength())
+  VAR d = self.d
+  CALL d.setArrayLength(name: screenRecord, length: arrVal.getLength())
   CALL self.setArrayData(arrVal)
-  CALL self.d.addTrigger("ON ACTION cancel")
-  --call the init function to allow the delegate adding actions,triggers
-  CALL delegate.init(self.d)
+  CALL d.addTrigger(ON_ACTION_cancel)
   WHILE TRUE -- event loop for dialog self.d
-    LET event = self.d.nextEvent()
-    --call back the delegate on each event
-    CALL delegate.event(self.d, event, self.d.getCurrentRow(screenRecord))
-    IF event = "ON ACTION cancel" THEN
+    LET event = d.nextEvent()
+    CASE
+      WHEN event == BEFORE_DISPLAY
+        VAR ifBD I_BeforeDisplay
+        --call back the delegate on BEFORE DISPLAY
+        IF delegate.canAssignToVariable(ifBD) THEN
+          CALL delegate.assignToVariable(ifBD)
+          CALL ifBD.BeforeDisplay(d: d)
+        END IF
+      WHEN event == BEFORE_ROW
+        VAR ifBR I_BeforeRow
+        --call back the delegate on BEFORE ROW
+        IF delegate.canAssignToVariable(ifBR) THEN
+          CALL delegate.assignToVariable(ifBR)
+          CALL ifBR.BeforeRow(d: d, row: d.getCurrentRow(screenRecord))
+        END IF
+      WHEN event.getIndexOf(ON_ACTION, 1) == 1
+        VAR ifOA I_OnActionInRow
+        IF delegate.canAssignToVariable(ifOA) THEN
+          CALL delegate.assignToVariable(ifOA)
+          CALL ifOA.OnActionInRow(
+            actionEvent: event, row: d.getCurrentRow(screenRecord))
+        END IF
+      OTHERWISE
+        VAR ifDE I_DialogEvent
+        IF delegate.canAssignToVariable(ifDE) THEN
+          CALL delegate.assignToVariable(ifDE)
+          CALL ifDE.event(
+            d: d, event: event, row: d.getCurrentRow(screenRecord))
+        END IF
+    END CASE
+    IF event == ON_ACTION_cancel THEN
       EXIT WHILE
     END IF
   END WHILE
