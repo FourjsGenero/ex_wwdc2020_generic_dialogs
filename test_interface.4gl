@@ -1,3 +1,4 @@
+&include "myassert.inc"
 IMPORT reflect
 TYPE I_1 INTERFACE
   foo() RETURNS()
@@ -12,6 +13,7 @@ TYPE T_2 RECORD
 END RECORD
 
 FUNCTION (self T_1) foo()
+  UNUSED(self)
   DISPLAY "T_1 foo"
 END FUNCTION
 
@@ -19,13 +21,6 @@ FUNCTION main()
   DEFINE i1 I_1 --we use reflection to determine
   DEFINE t1 T_1 --that T_1 conforms to I_1
   VAR reflectVal1=reflect.Value.valueOf(t1)
-  VAR i1Val=reflect.Value.valueOf(i1)
-  IF i1Val.getType().isAssignableFrom(reflectVal1.getType()) THEN
-    DISPLAY "isAssignable"
-    CALL i1Val.set(reflectVal1)
-    CALL i1.foo()
-  END IF
-  {
   IF reflectVal1.canAssignToVariable(i1) THEN
     DISPLAY "t1 implements the I_1 interface"
     CALL reflectVal1.assignToVariable(i1)
@@ -36,5 +31,4 @@ FUNCTION main()
   IF NOT reflectVal2.canAssignToVariable(i1) THEN
     DISPLAY "t2 does not implement the I_1 interface"
   END IF
-  }
 END FUNCTION
