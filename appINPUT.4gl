@@ -16,7 +16,7 @@ FUNCTION (self TM_Customer) event(d ui.Dialog, event STRING)
       CALL d.addTrigger("ON ACTION an_action")
     WHEN event == "ON ACTION an_action"
       MESSAGE "an action"
-    WHEN event.getIndexOf("AFTER FIELD", 1) == 1 AND length(self.zipcode) <> 5
+    WHEN event == "AFTER FIELD zipcode" AND length(self.zipcode) <> 5
       ERROR "zipcode must have 5 digits"
       CALL d.nextField(d.getCurrentItem())
   END CASE
