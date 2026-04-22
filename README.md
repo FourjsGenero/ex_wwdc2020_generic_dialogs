@@ -228,6 +228,8 @@ The library can additionally handle things that classic dialogs require per-dial
 - `ON FILLBUFFER` and multiple selection
 - Adaptive layout: multiple dialog on desktop, cascaded single dialog on mobile
 
+  See https://github.com/leopatras/generic_dlg_reflect with a more advanced version of the demo program.
+
 ## Links
 
 - Slides / original repository: https://github.com/leopatras/generic_dlg_reflect
